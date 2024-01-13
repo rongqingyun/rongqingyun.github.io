@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><meta name="author" content="Ron,ry183513026@gmail.com"><title>H5移动端的AI聊天窗口技术解析 · Ron blog</title><meta name="description" content="2023年，人工智能在前端行业已崭露头角，为我们带来了前所未有的变革和机遇。 借此机遇和行业背景，遂分享下个人在微信小程序下关于“AI对话界面”的设计与实现。
+
+
+
+一、界面要点分析  从界面布局上看，分为聊天区和输入区，那么相应的可以采用content和footer的布局模式。 content区域"><meta name="keywords" content="Hexo,HTML,CSS,JavaScript,工作日记"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="renderer" content="webkit"><link rel="short icon" href="/images/favicon.png" type="image/x-icon"><link rel="stylesheet" href="/css/style.css"><link rel="stylesheet" href="/css/blog_basic.css"><link rel="stylesheet" href="/css/font-awesome.min.css"><link rel="alternate" type="application/atom+xml" title="ATOM 1.0" href="/atom.xml"><meta name="generator" content="Hexo 5.4.0"></head><body><div class="sidebar animated fadeInDown"><div class="logo-title"><div class="title"><img src="/images/logo@2x.png" style="width:127px;"><h3 title=""><a href="/">Ron blog</a></h3><div class="description"><p>坐久了腰疼.</p></div></div></div><ul class="social-links"><li><a target="_blank" rel="noopener" href="http://github.com/https://github.com/rongqingyun"><i class="fa fa-github"></i></a></li></ul></div><div class="main"><div class="page-top animated fadeInDown"><div class="nav"><li><a href="/">首页</a></li><li><a href="/about">关于</a></li><li><a href="/archives">归档</a></li><li><a href="/links">友链</a></li></div><div class="information"><div class="back_btn"><li><a class="fa fa-chevron-left" onclick="window.history.go(-1)"> </a></li></div><div class="avatar"><img src="/images/favicon.png"></div></div></div><div class="autopagerize_page_element"><div class="content"><div class="post-page"><div class="post animated fadeInDown"><div class="post-title"><h3><a>H5移动端的AI聊天窗口技术解析</a></h3></div><div class="post-content"><p> 2023年，人工智能在前端行业已崭露头角，为我们带来了前所未有的变革和机遇。<br> 借此机遇和行业背景，遂分享下个人在微信小程序下关于“AI对话界面”的设计与实现。</p>
+<br/>
+<br/>
+
+<h3 id="一、界面要点分析"><a href="#一、界面要点分析" class="headerlink" title="一、界面要点分析"></a><strong>一、界面要点分析</strong></h3><p>  从界面布局上看，分为聊天区和输入区，那么相应的可以采用content和footer的布局模式。 content区域即聊天区板块，footer区域即用户输入板块。</p>
+<ol>
+<li>content区域需要加载引导语，引导语可让用户更好的了解该AI的作用。其次需要支持预定义问题以实现快速问答。<br>用户和AI的来回对话内容可视为list列表模式。<br>AI对话内容从左至右渲染，同时需要支持视频、图片、链接、代码块等呈现。<br>用户对话内容从右至左渲染，需要支持文字呈现。 </li>
+<li>footer区域功能较简单，可采用flex布局实现左中右排列即可。<br>但需要注意一点的就是，中间输入框需要使用textarea标签，以满足用户内容输入的多样性和输入换行等行为。</li>
+</ol>
+<h3 id="二、后台服务分析"><a href="#二、后台服务分析" class="headerlink" title="二、后台服务分析"></a><strong>二、后台服务分析</strong></h3><p>  目前后台服务并未采用<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/656030695">SSE</a>形式进行数据传输，而是将获取到的AI答复一次性返回于客户端。<br>  且经过试验后发现，返回的内容块中包含：文字、链接和代码块。<br>  同时打字机效果需要前端通过定时器setInterval或有限元状态机的形式实现。该项目采用前者方式实现打字机效果。效果如下图形式：<br>  <img src="https://rongqingyun.github.io/images/2023/20230612-138343.webp%22%E6%89%93%E5%AD%97%E6%9C%BA%E6%95%88%E6%9E%9C%22" alt="打字机效果"> </p>
+<h3 id="三、HTML布局code"><a href="#三、HTML布局code" class="headerlink" title="三、HTML布局code"></a><strong>三、HTML布局code</strong></h3><p>  需要解释的是，为何footer局域不采用position:fixed固定于底部。在个别机型上存在兼容性问题。具体现象为：将输入框置为fixed后，在输入框获取焦点进行输入时，输入框会被软键盘顶起，当输入框失焦时软键盘收回，而此时输入框则会继续存在于被顶起的位置无法回置。<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1822993?areaSource=102001.11&traceId=V50yXO39Y1ObLFEanJy-X">iOS 下 Input 和 fixed 的问题</a></p>
+<h3 id="四、JS实现主体功能"><a href="#四、JS实现主体功能" class="headerlink" title="四、JS实现主体功能"></a><strong>四、JS实现主体功能</strong></h3><p>  js部分实现了该项目的大部分的重要内容，支持预定义问题实现快速问题；解析视频、图片、代码块的工作；实现打字机效果；这些部分会分段介绍。 </p>
+<ol>
+<li><p>支持预定义问答。<br>预定义问答中包含引导语文本块和预定义list。其中文本块由定时器逐字输出，&lt;aaa&gt;标签中是预定义的list,将会采用innerHtml方式直接输出。 </p>
+</li>
+<li><p>解析视频、图片、链接等。<br>在AI回复的内容中，视频、图片等都是以链接形式返回的，那么只需要使用正则匹配http链接即可，再根据链接尾部的类型做if判定即可。然后再包裹上对应的html标签以innerHtml输入至对话框中。 </p>
+</li>
+<li><p>解析代码块。<br>代码块的匹配也是固定的，只需要正则匹配到“`”和“```”标记即可。将匹配到的代码块内容交由代码高亮插件输出为html形式，最后通过innerHtml渲染至对话框。<br>注意，由于正则的特殊性，代码块需要先匹配“```”，再匹配“`”。</p>
+</li>
+<li><p>打字机效果。</p>
+</li>
+</ol>
+</div><div class="post-footer"><div class="meta"><div class="info"><i class="fa fa-sun-o"></i><span class="date">2023-06-12</span><i class="fa fa-tag"></i><a class="tag" href="/tags/vue2/" title="vue2">vue2 </a><a class="tag" href="/tags/vant/" title="vant">vant </a><a class="tag" href="/tags/微信小程序/" title="微信小程序">微信小程序 </a></div></div></div></div><div class="pagination"><ul class="clearfix"><li class="next pagbuttons"><a class="btn" role="navigation" href="/2022/05/30/20220530_1/" title="JS实现重载">下一篇</a></li></ul></div></div></div></div></div><script src="/js/jquery.js"></script><script src="/js/jquery-migrate-1.2.1.min.js"></script><script src="/js/jquery.appear.js"></script></body></html>
